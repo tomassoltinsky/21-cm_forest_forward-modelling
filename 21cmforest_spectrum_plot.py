@@ -171,17 +171,11 @@ plt.tight_layout()
 plt.savefig('../../spectra/method_present/spectrum_smooth_%dcMpc_z%.1f_fX%s_%s_%dkHz_LOS%d.png' % (Lbox,z,fX_name,telescope,spec_res,LOS_ori))
 plt.show()
 
-print(len(freq))
-print(len(freq_smooth))
 
 
-N_d = 30
+N_d = 26
 signal_withnoise = signal_smooth+instrumental_features.add_noise(freq_smooth,telescope,spec_res,S_min_QSO,alpha_R,t_int,N_d)
-
-print(len(signal_ori))
-print(len(signal_smooth))
-print(len(signal_withnoise))
-
+#print(bleh)
 fig = plt.figure(figsize=(8.,4.75))
 gs = gridspec.GridSpec(1,1)
 
