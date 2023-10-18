@@ -113,10 +113,10 @@ def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish):
 
   ATsys  = w_low*ATsys_0[index_freq-1]+w_high*ATsys_0[index_freq]
 
-  correction = 1.3 #correction factor between radiometer equation and GMRT Exposure Time Calculator at ncra.tifr.res.in:8081/~secr-ops/etc/etc.html
+  correction = 1.29 #correction factor between radiometer equation and GMRT Exposure Time Calculator at ncra.tifr.res.in:8081/~secr-ops/etc/etc.html
 
   #calculate standard deviation for telescope following equations 2-3 in Ciardi et al. 2015 MNRAS 453, 101-105; Datta et al. 2007 MNRAS 382, 809–818
-  n_noise = np.sqrt(2)*constants.k_B/1e7/ATsys/np.sqrt(N_dish*(N_dish-1)*t_integration*3600*dv*1000)/constants.mJy
+  n_noise = np.sqrt(2)*constants.k_B/1e7/ATsys/np.sqrt(N_dish*(N_dish-1)*t_integration*3600*dv*1000)/constants.mJy*correction
 
   #generate radio spectrum and normalize the noise
   S_v = S_source*np.power(frequency/147.,spec_index)
