@@ -49,7 +49,6 @@ def smooth_fixedbox(frequency,signal,spec_res):
   Nbins_smooth = int(np.floor(Nbins/Npix))
   Nbins = Nbins_smooth*Npix
   ind_smooth = np.arange(0,Nbins-1,Npix)+int(np.floor(Npix/2))
-  print(Nbins,len(ind_smooth))
   freq_smooth = frequency[ind_smooth]
   signal_smooth = np.empty(Nbins_smooth)
   for i in range(Nbins_smooth):
@@ -87,7 +86,7 @@ def excel_column(data_name,n_col):
 
     return col
 
-def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish):
+def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,showsigN=0):
   
   #read uGMRT Aeff/Tsys from Fig. 8 in Braun et al. 2019
   datafile = 'sensitivity/sens_%s.xlsx' % telescope
@@ -113,17 +112,17 @@ def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish):
 
   ATsys  = w_low*ATsys_0[index_freq-1]+w_high*ATsys_0[index_freq]
 
-  correction = 1.29 #correction factor between radiometer equation and GMRT Exposure Time Calculator at ncra.tifr.res.in:8081/~secr-ops/etc/etc.html
-
   #calculate standard deviation for telescope following equations 2-3 in Ciardi et al. 2015 MNRAS 453, 101-105; Datta et al. 2007 MNRAS 382, 809–818
-  n_noise = np.sqrt(2)*constants.k_B/1e7/ATsys/np.sqrt(N_dish*(N_dish-1)*t_integration*3600*dv*1000)/constants.mJy*correction
+  n_noise = 2*constants.k_B/1e7/ATsys/np.sqrt(N_dish*(N_dish-1)*t_integration*3600*dv*1000)/constants.mJy
 
   #generate radio spectrum and normalize the noise
   S_v = S_source*np.power(frequency/147.,spec_index)
   sigma_noise = n_noise/S_v
 
-  print('<Noise>       = %.3fmJy' % np.mean(n_noise))
-  print('<sigma_noise> = %.5f' % np.mean(sigma_noise))
+  if showsigN==1:
+
+    print('<Noise>       = %.3fmJy' % np.mean(n_noise))
+    print('<sigma_noise> = %.5f' % np.mean(sigma_noise))
 
   #add random values from gaussian distribution to signal
   noise = np.random.normal(0.,sigma_noise,len(frequency))
