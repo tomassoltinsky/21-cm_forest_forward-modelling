@@ -32,15 +32,16 @@ alpha_R = float(sys.argv[7])
 t_int = float(sys.argv[8])
 n_los = 1000
 fX_name = -2.
+mean_xHI = 0.31
 N_d = 26
-Nlos = 100
+Nlos = 200
 
-datafile = str('%slos_regrid/200cMpclong_los_21cmREBIN_n%d_z%.3f_fX%.1f_dv%d_file%d.dat' % (path,Nlos,z_name,fX_name,dvH,0))
+datafile = str('%slos_regrid/los_50Mpc_n%d_z%.3f_fX%.1f_xHI%.2f_dv%d_file%d.dat' % (path,Nlos,z_name,fX_name,mean_xHI,dvH,0))
 data  = np.fromfile(str(datafile),dtype=np.float32)
 z     = data[0]	#redshift
 Nbins = int(data[7])					#Number of pixels/cells/bins in one line-of-sight
 Nlos = int(data[8])						#Number of lines-of-sight
-x_initial = 9
+x_initial = 12
 vel_axis = data[(x_initial+Nbins):(x_initial+2*Nbins)]#Hubble velocity along LoS in km/s
 redsh = instrumental_features.z_obs(z,vel_axis*1e5)
 freq = instrumental_features.freq_obs(z,vel_axis*1e5)
@@ -66,7 +67,7 @@ for j in range(n_los):
 
 array = np.append(n_kbins,k)
 array = np.append(array,PS_noise)
-array.astype('float32').tofile('1DPS_noise/power_spectrum_noise_200cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z,telescope,spec_res,S_min_QSO,alpha_R,t_int),sep='')
+array.astype('float32').tofile('1DPS_noise/power_spectrum_noise_50cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z,telescope,spec_res,S_min_QSO,alpha_R,t_int),sep='')
 
 stop_clock = time.perf_counter()
 time_taken = (stop_clock-start_clock)
