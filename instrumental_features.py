@@ -86,7 +86,7 @@ def excel_column(data_name,n_col):
 
     return col
 
-def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,showsigN=0):
+def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,showsigN=False):
   
   #read uGMRT Aeff/Tsys from Fig. 8 in Braun et al. 2019
   datafile = 'sensitivity/sens_%s.xlsx' % telescope
@@ -119,7 +119,7 @@ def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,sh
   S_v = S_source*np.power(frequency/147.,spec_index)
   sigma_noise = n_noise/S_v
 
-  if showsigN==1:
+  if showsigN==True:
 
     print('<Noise>       = %.3fmJy' % np.mean(n_noise))
     print('<sigma_noise> = %.5f' % np.mean(sigma_noise))
