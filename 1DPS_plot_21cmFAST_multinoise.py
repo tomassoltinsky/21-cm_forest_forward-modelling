@@ -28,9 +28,9 @@ dvH = float(sys.argv[5])
 spec_res = float(sys.argv[6])
 n_los = 1000
 
-S_min_QSO = [64.2,64.2,64.2,64.2,64.2]#,110.6,110.6]
-alpha_R = [-0.44,-0.44,-0.44,-0.44,-0.44]#,-0.89,-0.89]
-t_int = [1,5,10,50,100]
+S_min_QSO = [64.2,64.2,64.2]#,110.6,110.6]
+alpha_R = [-0.44,-0.44,-0.44]#,-0.89,-0.89]
+t_int = [5,100,500]
 #t_int = [10,50,100]
 #t_int = [10,10,10]
 
@@ -73,7 +73,7 @@ PS_noise_med = np.empty((len(t_int),len(k_bins_cent)))
 
 for i in range(len(t_int)):
 
-  datafile = str('1DPS_noise/power_spectrum_noise_200cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S_min_QSO[i],alpha_R[i],t_int[i]))
+  datafile = str('1DPS_noise/power_spectrum_noise_50cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S_min_QSO[i],alpha_R[i],t_int[i]))
   data = np.fromfile(str(datafile),dtype=np.float32)
   n_kbins = int(data[0])
   k = data[1:1+n_kbins]
@@ -109,7 +109,7 @@ for j in range(0,len(S_min_QSO)):
 
 
 #ax0.set_xlim(z_min,z_max)
-ax0.set_ylim(1e-10,2e-5)
+ax0.set_ylim(1e-10,6e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
@@ -124,6 +124,6 @@ ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,le
 ax0.set_title(r'$\mathrm{log}(f_{\rm X})=%.1f,\ \langle x_{\rm HI}\rangle =%.1f$' % (fX_name,xHI_mean),fontsize=fsize)
 
 plt.tight_layout()
-#plt.subplots_adjust(hspace=.0)
-#plt.savefig('1DPS_plots/power_spectrum_21cmFAST_multinoise_50Mpc_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz.png' % (z_name,fX_name,xHI_mean,telescope,spec_res))
-#plt.show()
+plt.subplots_adjust(hspace=.0)
+plt.savefig('1DPS_plots/power_spectrum_21cmFAST_multinoise_50Mpc_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz.png' % (z_name,fX_name,xHI_mean,telescope,spec_res))
+plt.show()

@@ -1,5 +1,5 @@
 """
-Generating 21cm forest 1D PS for noise.
+Generating 21cm forest 1D PS data for noise.
 
 Version 19.10.2023
 """
@@ -22,14 +22,14 @@ start_clock = time.perf_counter()
 import instrumental_features
 import PS1D
 
-path = str(sys.argv[1])
-z_name = float(sys.argv[2])
-dvH = float(sys.argv[3])
-telescope = str(sys.argv[4])
-spec_res = float(sys.argv[5])
-S_min_QSO = float(sys.argv[6])
-alpha_R = float(sys.argv[7])
-t_int = float(sys.argv[8])
+path = 'data/'
+z_name = float(sys.argv[1])
+dvH = float(sys.argv[2])
+telescope = str(sys.argv[3])
+spec_res = float(sys.argv[4])
+S_min_QSO = float(sys.argv[5])
+alpha_R = float(sys.argv[6])
+t_int = float(sys.argv[7])
 n_los = 1000
 fX_name = -2.
 mean_xHI = 0.31
@@ -43,7 +43,6 @@ Nbins = int(data[7])					#Number of pixels/cells/bins in one line-of-sight
 Nlos = int(data[8])						#Number of lines-of-sight
 x_initial = 12
 vel_axis = data[(x_initial+Nbins):(x_initial+2*Nbins)]#Hubble velocity along LoS in km/s
-redsh = instrumental_features.z_obs(z,vel_axis*1e5)
 freq = instrumental_features.freq_obs(z,vel_axis*1e5)
 
 freq_smooth = instrumental_features.smooth_fixedbox(freq,freq,spec_res)[0]
