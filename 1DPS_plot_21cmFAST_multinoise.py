@@ -28,9 +28,9 @@ dvH = float(sys.argv[5])
 spec_res = float(sys.argv[6])
 n_los = 1000
 
-S_min_QSO = [64.2,64.2,64.2]#,110.6,110.6]
-alpha_R = [-0.44,-0.44,-0.44]#,-0.89,-0.89]
-t_int = [5,100,500]
+S_min_QSO = [64.2,64.2]#,110.6,110.6]
+alpha_R = [-0.44,-0.44]#,-0.89,-0.89]
+t_int = [100,500]
 #t_int = [10,50,100]
 #t_int = [10,10,10]
 
@@ -101,15 +101,16 @@ ax0.legend(frameon=False,loc='lower left',fontsize=fsize,ncol=2)
 
 ax0.plot(k_bins_cent,PS_signal_med,'-',color='darkorange',label=r'Signal')
 ax0.fill_between(k_bins_cent,PS_signal_16,PS_signal_84,alpha=0.25,color='darkorange')
-for j in range(0,len(S_min_QSO)):
+for j in range(1,len(S_min_QSO)):
   #ax0.plot([k_bins_cent[0],k_bins_cent[-1]],[np.amax(PS_noise_bin[j]),np.amax(PS_noise_bin[j])],'--',color='fuchsia',label=r'Noise')
   ax0.plot(k_bins_cent,PS_noise_med[j],'--',color='fuchsia',label=r'Signal')
-  ax0.text(20,1.2*np.amax(PS_noise_med[j]),r'$S_{147\mathrm{MHz}}=%.1f\,\mathrm{mJy},\ \alpha_{\mathrm{R}}=%.2f,\ t_{\mathrm{int}}=%d\mathrm{hr}$' % (S_min_QSO[j],alpha_R[j],t_int[j]),fontsize=fsize-4)
+  #ax0.text(20,1.2*np.amax(PS_noise_med[j]),r'$S_{147\mathrm{MHz}}=%.1f\,\mathrm{mJy},\ \alpha_{\mathrm{R}}=%.2f,\ t_{\mathrm{int}}=%d\mathrm{hr}$' % (S_min_QSO[j],alpha_R[j],t_int[j]),fontsize=fsize-4)
+  ax0.text(60,1.3*np.amax(PS_noise_med[j]),r'$\sigma_{\mathrm{Noise}}=0.0027$',fontsize=fsize)
 
 
 
 #ax0.set_xlim(z_min,z_max)
-ax0.set_ylim(1e-10,6e-5)
+ax0.set_ylim(1e-10,1e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
@@ -125,5 +126,5 @@ ax0.set_title(r'$\mathrm{log}(f_{\rm X})=%.1f,\ \langle x_{\rm HI}\rangle =%.1f$
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=.0)
-plt.savefig('1DPS_plots/power_spectrum_21cmFAST_multinoise_50Mpc_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz.png' % (z_name,fX_name,xHI_mean,telescope,spec_res))
+plt.savefig('1DPS_plots/power_spectrum_21cmFAST_multinoise_50Mpc_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz_sigmanoise.png' % (z_name,fX_name,xHI_mean,telescope,spec_res))
 plt.show()

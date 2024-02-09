@@ -24,7 +24,8 @@ import PS1D
 
 
 
-path = 'data/'
+#path = 'data/'
+path = '../../datasets/21cmFAST_los/'
 z_name = float(sys.argv[1])
 dvH = float(sys.argv[2])
 spec_res = float(sys.argv[3])

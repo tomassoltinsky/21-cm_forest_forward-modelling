@@ -39,12 +39,13 @@ def z_obs(redshift,velH):
 
 
 
-def smooth_fixedbox(frequency,signal,spec_res):
+def smooth_fixedbox(frequency,signal,spec_res,shownpix=False):
    
   Nbins = len(frequency)
   v_pix = (frequency[-1]-frequency[0])/Nbins/1e3
   Npix = int(np.round(spec_res/v_pix,0))
-  print('Convolve over '+str(Npix)+' pixels')
+  if shownpix==True:
+    print('Convolve over '+str(Npix)+' pixels')
 
   Nbins_smooth = int(np.floor(Nbins/Npix))
   Nbins = Nbins_smooth*Npix
