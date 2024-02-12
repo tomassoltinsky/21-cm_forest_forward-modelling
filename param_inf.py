@@ -3,7 +3,7 @@ Parameter inference code based on Bayesian methods.
 
 Uses 2D interpolator for 1D PS from 21-cm forest.
 
-Version 8.2.2024
+Version 12.2.2024
 
 """
 
@@ -22,21 +22,26 @@ from scipy import interpolate
 import emcee
 import corner
 
-z_name = float(sys.argv[1])
-dvH = float(sys.argv[2])
-spec_res = float(sys.argv[3])
+#Input parameters
+z_name = float(sys.argv[1])         #redshift
+dvH = float(sys.argv[2])            #used rebinning for line profile convolution
+spec_res = float(sys.argv[3])       #spectral resolution of the telescope
+xHI_mean_mock = float(sys.argv[4])  #mock HI fraction
+logfX_mock = float(sys.argv[5])     #mock logfX
+path_LOS = '../../datasets/21cmFAST_los/los/'
+
 n_los = 100
 telescope = 'uGMRT'
 Nlos = 1000
 
-#path_LOS = 'data/los/'
-#files = os.listdir(path_LOS+'*file0.dat')
-path_LOS = '../../datasets/21cmFAST_los/los/'
 
+
+#Find all of the datasets for the interpolation
 files = glob.glob(path_LOS+'*.dat')
 logfX = np.empty(len(files))
 xHI_mean = np.empty(len(files))
 
+#Prepare k bins
 d_log_k_bins = 0.5
 log_k_bins = np.arange(0.0-d_log_k_bins/2.,3.+d_log_k_bins/2.,d_log_k_bins)
 k_bins = np.power(10.,log_k_bins)
@@ -45,7 +50,10 @@ print(k_bins)
 print(k_bins_cent)
 PS_signal_sim = np.empty((len(logfX),len(k_bins_cent)))
 sig_PS_signal_sim = np.empty((len(logfX),len(k_bins_cent)))
-#print(files)
+
+
+
+#Find all of the parameter values in simulated data and read the data for interpolation
 for j in range(len(files)):
     
     data = np.fromfile(str(files[j]),dtype=np.float32)
@@ -61,6 +69,7 @@ for j in range(len(files)):
     PS_signal = data[2+n_kbins+0*n_kbins*Nlos:2+n_kbins+1*n_kbins*Nlos]
     PS_signal = np.reshape(PS_signal,(Nlos,n_kbins))[:n_los,:]
 
+    #Bin the PS data
     PS_signal_bin = np.empty((n_los,len(k_bins_cent)))
 
     for i in range(n_los):
@@ -68,59 +77,13 @@ for j in range(len(files)):
         ind = np.where((k>=k_bins[l]) & (k<k_bins[l+1]))[0]
         PS_signal_bin[i,l] = np.mean(PS_signal[i,ind])
 
+    #Take median for each k bin
     PS_signal_sim[j,:] = np.median(PS_signal_bin,axis=0)
     sig_PS_signal_sim[j,:] = np.std(PS_signal_bin,axis=0)
 
 
 
-xHI_inter = 0.15
-fX_inter = -2.
-PS_signal_inter = np.empty(len(k_bins_cent))
-sig_inter = np.empty(len(k_bins_cent))
-
-for i in range(len(k_bins_cent)):
-               
-  inter_fun_PS21 = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),PS_signal_sim[:,i])
-  PS_signal_inter[i] = inter_fun_PS21(xHI_inter,fX_inter)
-  inter_fun_sig = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),sig_PS_signal_sim[:,i])
-  sig_inter[i] = inter_fun_sig(xHI_inter,fX_inter)
-
-'''
-fig = plt.figure(figsize=(20.,10.))
-gs = gridspec.GridSpec(1,1)
-fsize = 16
-
-ax0 = plt.subplot(gs[0,0])
-
-for i in range(len(files)):
-  ax0.plot(k_bins_cent,PS_signal_sim[i],'-',label=r'SIM: $<xHI>=%.2f,fX=%.1f$' % (xHI_mean[i],logfX[i]))
-ax0.plot(k_bins_cent,PS_signal_inter,'--',c='fuchsia',label=r'INTER: $<xHI>=%.2f,fX=%.1f$' % (xHI_inter,fX_inter))
-ax0.legend(frameon=False,loc='upper right',fontsize=fsize,ncol=3)
-#ax0.fill_between(k_bins_cent,PS_signal_16,PS_signal_84,alpha=0.25,color='darkorange')
-
-#ax0.set_xlim(z_min,z_max)
-ax0.set_ylim(1e-13,1e-6)
-#ax0.set_yticks(np.arange(0.97,1.031,0.01))
-ax0.set_xscale('log')
-ax0.set_yscale('log')
-ax0.set_xlabel(r'$k \,\rm [MHz^{-1}]$', fontsize=fsize)
-ax0.set_ylabel(r'$P_{\rm 1D}\,\rm [MHz]$', fontsize=fsize)
-ax0.tick_params(axis='x',which='major',direction='in',bottom=True,top=True,left=True,right=True
-		,length=10,width=1,labelsize=fsize)
-ax0.tick_params(axis='y',which='major',direction='in',bottom=True,top=True,left=True,right=True
-		,length=10,width=1,labelsize=fsize)
-ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,left=True,right=True
-		,length=5,width=1)
-#ax0.set_title(r'$\mathrm{log}f_{\rm X}=%.1f,\ x_{\rm HI}=%.2f,\ S_{147\mathrm{MHz}}=%.1f\,\mathrm{mJy},\ \alpha_{\mathrm{R}}=%.2f,\ %s:\ \Delta\nu=%d\,\mathrm{kHz},\ t_{\mathrm{int}}=%d\mathrm{hr},\ %d\rm LOS $' % (fX_name,xHI_mean,S_min_QSO,alpha_R,telescope,spec_res,t_int,n_los),fontsize=fsize-4)
-
-plt.tight_layout()
-#plt.subplots_adjust(hspace=.0)
-plt.show()
-'''
-
-xHI_mean_mock = 0.25
-logfX_mock = -2.4
-
+#Read the mock data for which we want to estimate parameters
 datafile = str('1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,logfX_mock,xHI_mean_mock,spec_res,Nlos))
 data = np.fromfile(str(datafile),dtype=np.float32)
 Nlos = int(data[0])
@@ -129,6 +92,7 @@ k = data[2:2+n_kbins]
 PS_signal = data[2+n_kbins+0*n_kbins*Nlos:2+n_kbins+1*n_kbins*Nlos]
 PS_signal = np.reshape(PS_signal,(Nlos,n_kbins))[:n_los,:]
 
+#Bin the PS data
 PS_signal_bin = np.empty((n_los,len(k_bins_cent)))
 
 for i in range(n_los):
@@ -136,49 +100,54 @@ for i in range(n_los):
     ind = np.where((k>=k_bins[l]) & (k<k_bins[l+1]))[0]
     PS_signal_bin[i,l] = np.mean(PS_signal[i,ind])
 
+#Take median for each k bin
 PS_signal_mock = np.median(PS_signal_bin,axis=0)
 sig_PS_signal_moc = np.std(PS_signal_bin,axis=0)
 
+
+
+#Define parameters to be estimated
+#The below steps are based on tutarial for emcee package (Foreman-Mackey et al. 2013) at https://emcee.readthedocs.io/en/stable/tutorials/line/
 par_spc=np.array([xHI_mean,logfX])
 
+#Define prior distribution as uniform within the range of our simulated data
+def log_prior(para):
+    xHI_mean1, logfX1 = para
+    if 0.01 <= xHI_mean1 <= 0.5 and -3.0 <= logfX1 <= 1.0:
+        return 0
+    return -np.inf
 
-
-inter_fun_PS21 = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),PS_signal_sim)
-PS_signal_inter = inter_fun_PS21([0.15,-2])
-#print(PS_signal_inter)
-
-def log_LKHD(para):
-
+#Define likelihood function
+#This can be calculated for any parameter values within the range given in the prior function using N-dimensional linear interpolator
+def log_likelihood(para):
     inter_fun_PS21 = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),PS_signal_sim)
     PS_signal_inter = inter_fun_PS21(para)
     inter_fun_sig = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),sig_PS_signal_sim)
     sig_inter = inter_fun_sig(para)
-    return 0.5*np.sum((PS_signal_mock-PS_signal_inter)**2/sig_inter**2+np.log(2*np.pi*sig_inter**2))
+    return -0.5*np.sum((PS_signal_mock-PS_signal_inter)**2/sig_inter**2+np.log(2*np.pi*sig_inter**2))
 
-def log_Prior(para):
-    xHI_mean1, logfX1 = para
-    if 0.01<=xHI_mean1<=0.5 and -3.0<=logfX1<=1.0:
-        return 0
-    return -np.inf
-
+#Define posterior function based on Bayes therom. Note that no normalization is assumed.
 def log_posterior(para):
-    LP=log_Prior(para)
+    LP = log_prior(para)
     if not np.isfinite(LP):
         return -np.inf
-    return LP-log_LKHD(para)
+    return LP+log_likelihood(para)
 
 
+
+#Initiate MCMC for the parameter estimation
 n_walk=64
 ndim=2
+Nsteps = 5000
 para0=np.array([0.45,-2.9])+1e-4*np.random.randn(n_walk, ndim)
 sampler = emcee.EnsembleSampler(n_walk, ndim, log_posterior)
-state=sampler.run_mcmc(para0, 5000, progress=True)
+state=sampler.run_mcmc(para0, Nsteps, progress=True)
 samples = sampler.get_chain()
 
+#And plot the chains for each parameter
 fsize=16
 fig, axes = plt.subplots(ndim, sharex=True)
 labels = [r"$<x_{\rm HI}>$",r"$\log_{10}f_{\mathrm{X}}$"]
-
 
 for i in range(ndim):
     ax = axes[i]
@@ -189,33 +158,42 @@ for i in range(ndim):
 
 axes[-1].set_xlabel("Step number",fontsize=fsize)
 
-#plt.show()
-plt.savefig('MCMCchains.png')
+plt.savefig('MCMCchains_%dsteps.png' % Nsteps)
+plt.show()
 plt.close()
 
+#See how many steps does it take to burn-in for each parameter
+#tau = sampler.get_autocorr_time()
+#print(tau)
+
+
+
 para_mean=np.zeros(ndim)
+#Discard first 200 steps from the MCMC which corresponds to 5x the burn-in time
 noflat_samples = sampler.get_chain(discard=200, thin=50)
 np.save('noflatsamp_1e12all',noflat_samples)
 
+#Flatten the MCMC
 flat_samples = sampler.get_chain(discard=200, thin=50, flat=True)
 np.save('flatsamp_1e12all',flat_samples)
 
+#Compute the best estimated value and corresponding uncertainty for each parameter
 param_label = ['<xHI>', 'logfX']
-
 for j in range(ndim):
         mcmc = np.percentile(flat_samples[:, j], [16, 50, 84])
         q = np.diff(mcmc)
         para_mean[j]=mcmc[1]
         print('%s = %.5f + %.5f - %.5f' % (param_label[j],mcmc[1], q[0], q[1]))
         
+
+
+#Present the result in corner plot
 sett=dict(fontsize=16)
 fig=corner.corner(flat_samples,labels=labels,truths=para_mean,labelpad=0.01,label_kwargs=sett, smooth=True)
 
-axes = np.array(fig.axes).reshape((2,2)); print(axes)
+axes = np.array(fig.axes).reshape((2,2))
 ax = axes[1,0]
 ax.plot(logfX_mock,xHI_mean_mock,c='red')
 
-#tau = sampler.get_autocorr_time()
-#print(tau)
-plt.savefig('infered_param_xHI%.2f_fX%.1f_wholepspace_5000.png' % (xHI_mean_mock,logfX_mock))
+plt.savefig('infered_param_xHI%.2f_fX%.1f_%dsteps.png' % (xHI_mean_mock,logfX_mock,Nsteps))
 plt.show()
