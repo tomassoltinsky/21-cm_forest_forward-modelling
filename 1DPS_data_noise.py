@@ -66,7 +66,7 @@ for j in range(n_los):
 
 array = np.append(n_kbins,k)
 array = np.append(array,PS_noise)
-array.astype('float32').tofile('1DPS_noise/power_spectrum_noise_50cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z,telescope,spec_res,S_min_QSO,alpha_R,t_int),sep='')
+array.astype('float32').tofile('1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z,telescope,spec_res,S_min_QSO,alpha_R,t_int),sep='')
 
 stop_clock = time.perf_counter()
 time_taken = (stop_clock-start_clock)
