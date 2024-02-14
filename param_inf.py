@@ -128,7 +128,9 @@ for i in range(Nlos_noise):
     PS_noise_bin[i,l] = np.mean(PS_noise[i,ind])
 
 #Take median for each k bin
+#PS_noise = np.mean(PS_noise_bin,axis=0)
 sig_PS_noise = np.std(PS_noise_bin,axis=0)
+
 
 
 #Define parameters to be estimated
@@ -184,7 +186,7 @@ for i in range(ndim):
 
 axes[-1].set_xlabel("Step number",fontsize=fsize)
 
-plt.savefig('MCMCchains_%dsteps.png' % Nsteps)
+plt.savefig('MCMC_samples/MCMCchains_%dsteps.png' % Nsteps)
 #plt.show()
 plt.close()
 
@@ -201,7 +203,7 @@ para_mean=np.zeros(ndim)
 
 #Flatten the MCMC
 flat_samples = sampler.get_chain(discard=200, thin=50, flat=True)
-np.save('flatsamp_1e12all',flat_samples)
+np.save('MCMC_samples/flatsamp_xHI%.2f_fX%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh_%dsteps.npy' % (xHI_mean_mock,logfX_mock,telescope,spec_res,S147,alphaR,tint,Nsteps),flat_samples)
 
 #Compute the best estimated value and corresponding uncertainty for each parameter
 param_label = ['<xHI>', 'logfX']
@@ -219,7 +221,7 @@ sett=dict(fontsize=14)
 fig=corner.corner(flat_samples,range=[[0.,0.5],[-3.,1.]],color='royalblue',smooth=True,labels=labels,label_kwargs=sett
                   ,show_titles=True,title_kwargs=sett,truths=para_mean,truth_color='fuchsia')
 
-corner.overplot_points(fig=fig,xs=[[np.nan,np.nan],[np.nan,np.nan],[xHI_mean_mock,logfX_mock],[np.nan,np.nan]],color='darkorange')
+corner.overplot_points(fig=fig,xs=[[np.nan,np.nan],[np.nan,np.nan],[xHI_mean_mock,logfX_mock],[np.nan,np.nan]],marker='x',markersize=10,markeredgewidth=3,color='darkorange')
 
-plt.savefig('inferred_param_xHI%.2f_fX%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh_%dsteps.png' % (xHI_mean_mock,logfX_mock,telescope,spec_res,S147,alphaR,tint,Nsteps))
+plt.savefig('MCMC_samples/inferred_param_xHI%.2f_fX%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh_%dsteps.png' % (xHI_mean_mock,logfX_mock,telescope,spec_res,S147,alphaR,tint,Nsteps))
 plt.show()
