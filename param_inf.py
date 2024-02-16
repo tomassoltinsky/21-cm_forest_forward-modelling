@@ -19,6 +19,7 @@ from matplotlib import gridspec
 import openpyxl
 import time
 from scipy import interpolate
+from scipy.optimize import minimize
 import emcee
 import corner
 
@@ -138,27 +139,29 @@ sig_PS_noise = np.std(PS_noise_bin,axis=0)
 par_spc=np.array([xHI_mean,logfX])
 
 #Define prior distribution as uniform within the range of our simulated data
-def log_prior(para):
-    xHI_mean1, logfX1 = para
+def log_prior(theta):
+    xHI_mean1, logfX1 = theta
     if 0.01 <= xHI_mean1 <= 0.5 and -3.0 <= logfX1 <= 1.0:
         return 0
     return -np.inf
 
-#Define likelihood function
-#This can be calculated for any parameter values within the range given in the prior function using N-dimensional linear interpolator
-def log_likelihood(para):
-    inter_fun_PS21 = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),PS_signal_sim)
-    PS_signal_inter = inter_fun_PS21(para)
+#Set up N-dimensional linear interpolator for calculating P21 for any parameter values within the range given in the prior function
+inter_fun_PS21 = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),PS_signal_sim)
+
+#Define (negative) likelihood function
+def log_likelihood(theta,P21_mock,sig_P21):
+    xHI_mean1, logfX1 = theta 
+    PS_signal_inter = inter_fun_PS21(xHI_mean1, logfX1)
     #inter_fun_sig = interpolate.LinearNDInterpolator(np.transpose([xHI_mean,logfX]),sig_PS_signal_sim)
     #sig_inter = inter_fun_sig(para)
-    return 0.5*np.sum((PS_signal_mock-PS_signal_inter)**2/sig_PS_noise**2+np.log(2*np.pi*sig_PS_noise**2))
+    return 0.5*np.sum((P21_mock-PS_signal_inter)**2/sig_P21**2+np.log(2*np.pi*sig_P21**2))
 
 #Define posterior function based on Bayes therom. Note that no normalization is assumed.
-def log_posterior(para):
-    LP = log_prior(para)
+def log_posterior(theta,P21_mock,sig_P21):
+    LP = log_prior(theta)
     if not np.isfinite(LP):
         return -np.inf
-    return LP-log_likelihood(para)
+    return LP-log_likelihood(theta,P21_mock,sig_P21)
 
 
 
@@ -166,9 +169,12 @@ print('Reading data done')
 #Initiate MCMC for the parameter estimation
 n_walk=64
 ndim=2
-Nsteps = 5000
-para0=np.array([0.45,-2.9])+1e-4*np.random.randn(n_walk, ndim)
-sampler = emcee.EnsembleSampler(n_walk, ndim, log_posterior)
+Nsteps = 10000
+
+initial = np.array([0.2,-1])# + 0.1 * np.random.randn(2)
+soln = minimize(log_likelihood, initial, args=(PS_signal_mock,sig_PS_noise),bounds=([0.01,0.5],[-3.,1.]))
+para0 = soln.x+1e-4*np.random.randn(n_walk, ndim)
+sampler = emcee.EnsembleSampler(n_walk, ndim, log_posterior, args=(PS_signal_mock,sig_PS_noise))
 state=sampler.run_mcmc(para0, Nsteps, progress=True)
 samples = sampler.get_chain()
 
@@ -187,7 +193,7 @@ for i in range(ndim):
 axes[-1].set_xlabel("Step number",fontsize=fsize)
 
 plt.savefig('MCMC_samples/MCMCchains_%dsteps.png' % Nsteps)
-#plt.show()
+plt.show()
 plt.close()
 
 #See how many steps does it take to burn-in for each parameter
