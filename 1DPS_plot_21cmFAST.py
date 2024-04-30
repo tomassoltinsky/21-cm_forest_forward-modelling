@@ -69,7 +69,7 @@ PS_noise_bin = np.empty((Nlos_noise,len(k_bins_cent)))
 PS_noise_med = np.empty(len(k_bins_cent))
 
 
-datafile = str('1DPS_noise/power_spectrum_noise_50cMpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S_min_QSO,alpha_R,t_int))
+datafile = str('1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S_min_QSO,alpha_R,t_int))
 data = np.fromfile(str(datafile),dtype=np.float32)
 n_kbins = int(data[0])
 k = data[1:1+n_kbins]

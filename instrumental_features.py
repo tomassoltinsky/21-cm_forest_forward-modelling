@@ -95,7 +95,10 @@ def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,sh
   ATsys_0 = excel_column(datafile,2)
 
   if telescope=='uGMRT':
-    ATsys_0 = ATsys_0/30
+    ATsys_0 = ATsys_0/np.sqrt(30*(30-1))
+
+  elif telescope=='SKA1-low':
+    ATsys_0 = ATsys_0/np.sqrt(512*(512-1))
 
   frequency = frequency/1e6
   index_freq = np.digitize(frequency,freq_0,right=True)	#Interpolate in the density (similar to redshift)

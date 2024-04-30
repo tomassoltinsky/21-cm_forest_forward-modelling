@@ -29,7 +29,11 @@ n_los = 1000
 fX_fid = float(sys.argv[4])
 xHI_fid = float(sys.argv[5])
 
-
+spec_res = 8
+S147 = 64.2
+alphaR = -0.44
+tint = 500
+telescope = 'uGMRT'
 
 path_LOS = '../../datasets/21cmFAST_los/los/'
 files = glob.glob(path_LOS+'*fX%.1f*' % fX_fid)
@@ -40,6 +44,50 @@ log_k_bins = np.arange(0.0-d_log_k_bins/2.,3.+d_log_k_bins/2.,d_log_k_bins)
 k_bins = np.power(10.,log_k_bins)
 k_bins_cent = np.power(10.,log_k_bins+d_log_k_bins/2.)[:-1]
 PS_signal_sim = np.empty((len(files),len(k_bins_cent)))
+
+
+
+datafile = str('1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,fX_fid,xHI_fid,spec_res,1000))
+data = np.fromfile(str(datafile),dtype=np.float32)
+Nlos = int(data[0])
+n_kbins = int(data[1])
+k = data[2:2+n_kbins]
+PS_signal = data[2+n_kbins+0*n_kbins*Nlos:2+n_kbins+1*n_kbins*Nlos]
+PS_signal = np.reshape(PS_signal,(Nlos,n_kbins))[:n_los,:]
+
+PS_signal_bin = np.empty((n_los,len(k_bins_cent)))
+
+for i in range(n_los):
+  for l in range(len(k_bins_cent)):
+    ind = np.where((k>=k_bins[l]) & (k<k_bins[l+1]))[0]
+    PS_signal_bin[i,l] = np.mean(PS_signal[i,ind])
+
+PS_signal_fid = np.median(PS_signal_bin,axis=0)
+
+
+
+#Read data for noise
+Nlos_noise = 500
+datafile = str('1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S147,alphaR,tint))
+data = np.fromfile(str(datafile),dtype=np.float32)
+n_kbins = int(data[0])
+k = data[1:1+n_kbins]
+PS_noise = data[1+n_kbins+0*n_kbins*Nlos_noise:1+n_kbins+1*n_kbins*Nlos_noise]
+PS_noise = np.reshape(PS_noise,(Nlos_noise,n_kbins))
+
+#Bin the PS data
+PS_noise_bin = np.empty((Nlos_noise,len(k_bins_cent)))
+
+for i in range(Nlos_noise):
+  for l in range(len(k_bins_cent)):
+    ind = np.where((k>=k_bins[l]) & (k<k_bins[l+1]))[0]
+    PS_noise_bin[i,l] = np.mean(PS_noise[i,ind])
+
+#Take median for each k bin
+#PS_noise = np.mean(PS_noise_bin,axis=0)
+sig_PS_noise = np.std(PS_noise_bin,axis=0)
+
+
 
 for j in range(len(files)):
     
@@ -67,20 +115,33 @@ for j in range(len(files)):
 
 print(PS_signal_sim[0,:])
 
-fig = plt.figure(figsize=(10.,5.))
-gs = gridspec.GridSpec(1,1)
 
-ax0 = plt.subplot(gs[0,0])
 
-for j in range(len(files)):
+colours = plt.cm.inferno(np.linspace(0,1,len(files)))
+
+fig, (ax0, cbar_ax) = plt.subplots(ncols=2,figsize=(10.,5.),gridspec_kw={'width_ratios': [9.75,0.25]})
+#gs = gridspec.GridSpec(1,1)
+
+#ax0 = plt.subplot(gs[0,0])
+
+cmap = plt.cm.inferno
+norm = plt.Normalize(vmin=np.amin(xHI_mean), vmax=np.amax(xHI_mean))
+cb1 = mpl.colorbar.ColorbarBase(cbar_ax, cmap=cmap, norm=norm, orientation='vertical')
+cbar_ax.tick_params(labelsize=fsize)
+cb1.set_label(r'$\langle x_{\rm HI}\rangle$',fontsize=fsize)
+
+ind = np.argsort(xHI_mean)
+for i in range(len(files)):
    
-   ax0.plot(k_bins_cent,PS_signal_sim[j,:],'-',color='darkorange',label=r'Signal')
-   ax0.text(1.1*k_bins_cent[-1],PS_signal_sim[j,-1],r'$%.2f$' % (xHI_mean[j]),fontsize=fsize-4)
+   j = ind[i]
+   ax0.plot(k_bins_cent,PS_signal_sim[j,:],'-',color=cmap(norm(xHI_mean[j])),label=r'Signal')
+   #ax0.text(1.1*k_bins_cent[-1],PS_signal_sim[j,-1],r'$%.2f$' % (xHI_mean[j]),fontsize=fsize-4)
 
-ax0.text(100,7e-7,r'$\mathrm{log}f_{\mathrm{X}}=%.1f$' % (fX_fid),fontsize=fsize)
+ax0.text(80,7e-7,r'$\mathrm{log}f_{\mathrm{X}}=%.1f$' % (fX_fid),fontsize=fsize)
 
 
-ax0.set_xlim(1,6e2)
+
+ax0.set_xlim(0.8,4e2)
 ax0.set_ylim(5e-11,2e-6)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
@@ -93,6 +154,8 @@ ax0.tick_params(axis='y',which='major',direction='in',bottom=True,top=True,left=
 		,length=10,width=1,labelsize=fsize)
 ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,left=True,right=True
 		,length=5,width=1)
+
+ax0.errorbar(k_bins_cent,PS_signal_fid,yerr=sig_PS_noise,fmt=' ',marker='o',capsize=5,color='royalblue')
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)
@@ -137,21 +200,29 @@ for j in range(len(files)):
 
 print(PS_signal_sim[0,:])
 
-fig = plt.figure(figsize=(10.,5.))
-gs = gridspec.GridSpec(1,1)
+fig, (ax0, cbar_ax) = plt.subplots(ncols=2,figsize=(10.,5.),gridspec_kw={'width_ratios': [9.75,0.25]})
+#gs = gridspec.GridSpec(1,1)
 
-ax0 = plt.subplot(gs[0,0])
+#ax0 = plt.subplot(gs[0,0])
 
-for j in range(len(files)):
+cmap = plt.cm.inferno
+norm = plt.Normalize(vmin=np.amin(logfX), vmax=np.amax(logfX))
+cb1 = mpl.colorbar.ColorbarBase(cbar_ax, cmap=cmap, norm=norm, orientation='vertical')
+cbar_ax.tick_params(labelsize=fsize)
+cb1.set_label(r'$\mathrm{log}(f_{\rm X})$',fontsize=fsize)
+
+ind = np.argsort(logfX)
+for i in range(len(files)):
    
-   ax0.plot(k_bins_cent,PS_signal_sim[j,:],'-',color='darkorange',label=r'Signal')
-   ax0.text(1.1*k_bins_cent[-1],PS_signal_sim[j,-1],r'$%.1f$' % (logfX[j]),fontsize=fsize-4)
+   j = ind[i]  
+   ax0.plot(k_bins_cent,PS_signal_sim[j,:],'-',color=cmap(norm(logfX[j])),label=r'Signal')
+   #ax0.text(1.1*k_bins_cent[-1],PS_signal_sim[j,-1],r'$%.1f$' % (logfX[j]),fontsize=fsize-4)
 
 ax0.text(100,7e-7,r'$x_{\mathrm{HI}}=%.2f$' % (xHI_fid),fontsize=fsize)
 
 
-ax0.set_xlim(1,6e2)
-ax0.set_ylim(5e-11,2e-6)
+ax0.set_xlim(0.8,4e2)
+ax0.set_ylim(1e-14,6e-6)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
@@ -163,6 +234,8 @@ ax0.tick_params(axis='y',which='major',direction='in',bottom=True,top=True,left=
 		,length=10,width=1,labelsize=fsize)
 ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,left=True,right=True
 		,length=5,width=1)
+
+ax0.errorbar(k_bins_cent,PS_signal_fid,yerr=sig_PS_noise,fmt=' ',marker='o',capsize=5,color='royalblue')
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)

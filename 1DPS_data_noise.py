@@ -29,11 +29,11 @@ telescope = str(sys.argv[3])
 spec_res = float(sys.argv[4])
 S_min_QSO = float(sys.argv[5])
 alpha_R = float(sys.argv[6])
-t_int = float(sys.argv[7])
+N_d = float(sys.argv[7])
+t_int = float(sys.argv[8])
 n_los = 1000
 fX_name = -2.
 mean_xHI = 0.31
-N_d = 26
 Nlos = 200
 
 datafile = str('%slos_regrid/los_50Mpc_n%d_z%.3f_fX%.1f_xHI%.2f_dv%d_file%d.dat' % (path,Nlos,z_name,fX_name,mean_xHI,dvH,0))
