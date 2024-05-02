@@ -102,10 +102,20 @@ sig_PS_noise_med = np.std(PS_noise_bin,axis=0)
 PS_ns_med = np.median(PS_ns_bin,axis=0)
 sig_PS_ns_med = np.std(PS_ns_bin,axis=0)
 
+#Create sample of N_samples of median PS from N_obs LOS
+N_samples = 10000
+N_obs = 10
+PS_ns_obs = np.empty((N_samples,len(k_bins_cent)))
+
+for i in range(N_samples):
+  LOS = random.randint(0,Nlos-1,size=N_obs)
+  PS_ns_obs[i][:] = np.median(PS_ns_bin[LOS][:],axis=0)
+
 
 
 #Calculate the covariance and correllation matrices
-def covar_matrix(P21_all,P21_sim,NmockLOS):
+def covar_matrix(P21_all,P21_sim):
+#def covar_matrix(P21_all,P21_sim,NmockLOS):
   
   Ndim = len(P21_sim)
   covariance = np.empty([Ndim,Ndim])
@@ -133,13 +143,13 @@ def corr_matrix(covariance):
 
   return correlation
 
-Mcovar_signal = covar_matrix(PS_signal_bin,PS_signal_med,10000)
+Mcovar_signal = covar_matrix(PS_signal_bin,PS_signal_med)
 Mcorr_signal  = corr_matrix(Mcovar_signal)
 
-Mcovar_noise = covar_matrix(PS_noise_bin,PS_noise_med,10000)
+Mcovar_noise = covar_matrix(PS_noise_bin,PS_noise_med)
 Mcorr_noise  = corr_matrix(Mcovar_noise)
 
-Mcovar_ns = covar_matrix(PS_ns_bin,PS_ns_med,10000)
+Mcovar_ns = covar_matrix(PS_ns_obs,PS_ns_med)
 Mcorr_ns  = corr_matrix(Mcovar_ns)
 
 
@@ -181,8 +191,8 @@ ax0.set_title(r"$\langle x_{\rm HI}\rangle=%.2f,\, \log_{10}(f_{\mathrm{X}})=%.1
 
 plt.tight_layout()
 plt.subplots_adjust(wspace=.0)
-plt.savefig('covariance_matrix/correlation_matrix_signal_z%.1f_fX%.2f_xHI%.2f_2.png' % (z_name,logfX_mock,xHI_mean_mock))
-plt.show()
+#plt.savefig('covariance_matrix/correlation_matrix_signal_z%.1f_fX%.2f_xHI%.2f_2.png' % (z_name,logfX_mock,xHI_mean_mock))
+#plt.show()
 plt.close()
 
 
@@ -222,8 +232,8 @@ ax0.set_title(r"%s, $S_{\rm 147}=%.1f\,\mathrm{mJy},\, \alpha_{\rm R}=%.2f,\, t_
 
 plt.tight_layout()
 plt.subplots_adjust(wspace=.0)
-plt.savefig('covariance_matrix/correlation_matrix_noise_z%.1f__%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh_2.png' % (z_name,telescope,spec_res,S_min_QSO,alpha_R,t_int))
-plt.show()
+#plt.savefig('covariance_matrix/correlation_matrix_noise_z%.1f__%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh_2.png' % (z_name,telescope,spec_res,S_min_QSO,alpha_R,t_int))
+#plt.show()
 plt.close()
 
 
@@ -264,6 +274,6 @@ ax0.set_title(r"$\langle x_{\rm HI}\rangle=%.2f,\, \log_{10}(f_{\mathrm{X}})=%.1
 
 plt.tight_layout()
 plt.subplots_adjust(wspace=.0)
-plt.savefig('covariance_matrix/correlation_matrix_ns_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz_t%dh_Smin%.1fmJy_alphaR%.2f_2.png' % (z_name,logfX_mock,xHI_mean_mock,telescope,spec_res,t_int,S_min_QSO,alpha_R))
+plt.savefig('covariance_matrix/correlation_matrix_ns_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz_t%dh_Smin%.1fmJy_alphaR%.2f_median10LOS.png' % (z_name,logfX_mock,xHI_mean_mock,telescope,spec_res,t_int,S_min_QSO,alpha_R))
 plt.show()
 plt.close()
