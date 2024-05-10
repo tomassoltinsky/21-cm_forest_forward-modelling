@@ -1,5 +1,5 @@
 """
-1D PS function.
+1D PS dimensionless function.
 
 Version 19.10.2023
 """
@@ -17,7 +17,9 @@ def get_P(signal,max_size):
   dx = max_size/n_pixels
   dft = dx*dft/max_size
 
-  kbins = np.arange(0,(n_pixels/2+1)*2*np.pi/max_size*(1.+1.e-100),2*np.pi/max_size)
+  k_fund = 2*np.pi/max_size
+
+  kbins = np.arange(0,(n_pixels/2+1)*k_fund*(1.+1.e-100),k_fund)
 
   #power spectrum using Periodogram estimate
   PowSpec[0] = (np.abs(dft[0]))**2
@@ -26,6 +28,6 @@ def get_P(signal,max_size):
       PowSpec[p+1] = (np.abs(dft[p+1])**2 + np.abs(dft[n_pixels-p-1])**2)/2.0
   PowSpec[int(n_pixels/2)] = (np.abs(dft[int(n_pixels/2)]))**2
 
-  PowSpec = PowSpec*max_size
+  PowSpec = PowSpec*max_size*kbins
 
   return kbins,PowSpec

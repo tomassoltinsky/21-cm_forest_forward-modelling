@@ -141,12 +141,11 @@ def uni_freq(freq,signal):
   minimum_frequency = np.min(freq)    
   maximum_frequency = np.max(freq)
   Delta_nu = maximum_frequency-minimum_frequency
-  dnu = 0.5e-3 # MHz
+  dnu = 1000. # Hz
   npix = int((Delta_nu)/dnu)
   uniform_freq = np.linspace(minimum_frequency, maximum_frequency, npix)
 
   # Initialize flux array and interpolate flux for each line of sight
-
   N_los = signal.shape[0]
   uniform_signal = np.zeros((N_los, npix), dtype=np.float32)
   for i in range(N_los):
