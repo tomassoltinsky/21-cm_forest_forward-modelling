@@ -133,3 +133,23 @@ def add_noise(frequency,telescope,dv,S_source,spec_index,t_integration,N_dish,sh
   return noise
 
 
+
+def uni_freq(freq,signal):
+
+  # Calculate frequency range and, because we want to compute the power spectrum 
+  # in frequency space, create a uniform frequency array.
+  minimum_frequency = np.min(freq)    
+  maximum_frequency = np.max(freq)
+  Delta_nu = maximum_frequency-minimum_frequency
+  dnu = 0.5e-3 # MHz
+  npix = int((Delta_nu)/dnu)
+  uniform_freq = np.linspace(minimum_frequency, maximum_frequency, npix)
+
+  # Initialize flux array and interpolate flux for each line of sight
+
+  N_los = signal.shape[0]
+  uniform_signal = np.zeros((N_los, npix), dtype=np.float32)
+  for i in range(N_los):
+      uniform_signal[i,:] = np.interp(uniform_freq, freq, signal[i])
+
+  return uniform_freq,uniform_signal
