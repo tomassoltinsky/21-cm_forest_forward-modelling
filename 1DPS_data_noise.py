@@ -22,30 +22,30 @@ start_clock = time.perf_counter()
 import instrumental_features
 import PS1D
 
-path = 'data/'
+path = '../../datasets/21cmFAST_los/'
 z_name = float(sys.argv[1])
 dvH = float(sys.argv[2])
 telescope = str(sys.argv[3])
 spec_res = float(sys.argv[4])
-S_min_QSO = float(sys.argv[5])
-alpha_R = float(sys.argv[6])
+S147 = float(sys.argv[5])
+alphaR = float(sys.argv[6])
 N_d = float(sys.argv[7])
-t_int = float(sys.argv[8])
+tint = float(sys.argv[8])
 n_los = 1000
 fX_name = -2.
-mean_xHI = 0.31
-Nlos = 200
+mean_xHI = 0.25
 
-datafile = str('%slos_regrid/los_50Mpc_n%d_z%.3f_fX%.1f_xHI%.2f_dv%d_file%d.dat' % (path,Nlos,z_name,fX_name,mean_xHI,dvH,0))
+datafile = str('%slos_regrid/los_50Mpc_n%d_z%.3f_fX%.1f_xHI%.2f_dv%d_file%d.dat' % (path,200,z_name,fX_name,mean_xHI,dvH,0))
 data  = np.fromfile(str(datafile),dtype=np.float32)
 z     = data[0]	#redshift
 Nbins = int(data[7])					#Number of pixels/cells/bins in one line-of-sight
 Nlos = int(data[8])						#Number of lines-of-sight
 x_initial = 12
 vel_axis = data[(x_initial+Nbins):(x_initial+2*Nbins)]#Hubble velocity along LoS in km/s
-freq = instrumental_features.freq_obs(z,vel_axis*1e5)
+freq_ori = instrumental_features.freq_obs(z,vel_axis*1e5)
 
-freq_smooth = instrumental_features.smooth_fixedbox(freq,freq,spec_res)[0]
+freq_uni = instrumental_features.uni_freq(freq_ori,np.array([freq_ori]))[0]
+freq_smooth = instrumental_features.smooth_fixedbox(freq_uni,freq_uni,spec_res)[0]
 bandwidth = (freq_smooth[-1]-freq_smooth[0])/1e6
 print('Bandwidth = %.2fMHz' % bandwidth)
 
@@ -56,7 +56,7 @@ done_perc = 0.1
 
 for j in range(n_los):
 
-  noise = instrumental_features.add_noise(freq_smooth,telescope,spec_res,S_min_QSO,alpha_R,t_int,N_d)
+  noise = instrumental_features.add_noise(freq_smooth,telescope,spec_res,S147,alphaR,tint,N_d)
   k,PS_noise[j,:] = PS1D.get_P(1.+noise,bandwidth)
 
   done_LOS = (j+1)/n_los
@@ -64,9 +64,10 @@ for j in range(n_los):
     print('Done %.2f' % done_LOS)
     done_perc = done_perc+0.1
 
-array = np.append(n_kbins,k)
+array = np.append(n_los,n_kbins)
+array = np.append(array,k)
 array = np.append(array,PS_noise)
-array.astype('float32').tofile('1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z,telescope,spec_res,S_min_QSO,alpha_R,t_int),sep='')
+array.astype('float32').tofile('1DPS_dimensionless/1DPS_noise/power_spectrum_noise_21cmFAST_50Mpc_z%.1f_%s_%dkHz_t%dh_Smin%.1fmJy_alphaR%.2f_%dLOS.dat' % (z_name,telescope,spec_res,tint,S147,alphaR,n_los),sep='')
 
 stop_clock = time.perf_counter()
 time_taken = (stop_clock-start_clock)
