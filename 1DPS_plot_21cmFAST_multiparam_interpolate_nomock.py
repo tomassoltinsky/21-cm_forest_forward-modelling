@@ -42,6 +42,15 @@ files = glob.glob(path_LOS+'*.dat')
 files_to_remove = glob.glob(path_LOS+'*fX-10.0*.dat')
 for i in range(len(files_to_remove)):
    files.remove(files_to_remove[i])
+files_to_remove = glob.glob(path_LOS+'*xHI1.*.dat')
+for i in range(len(files_to_remove)):
+   files.remove(files_to_remove[i])
+files_to_remove = glob.glob(path_LOS+'*xHI0.9*.dat')
+for i in range(len(files_to_remove)):
+   files.remove(files_to_remove[i])
+files_to_remove = glob.glob(path_LOS+'*xHI0.8*.dat')
+for i in range(len(files_to_remove)):
+   files.remove(files_to_remove[i])
 files_to_remove = glob.glob(path_LOS+'*xHI0.7*.dat')
 for i in range(len(files_to_remove)):
    files.remove(files_to_remove[i])
@@ -70,13 +79,17 @@ xHI_mean = np.empty(len(files))
 
 d_log_k_bins = 0.5
 log_k_bins = np.arange(0.0-d_log_k_bins/2.,3.+d_log_k_bins/2.,d_log_k_bins)
+
+d_log_k_bins = 0.2
+log_k_bins = np.arange(0.3-d_log_k_bins/2.,2.6+d_log_k_bins/2.,d_log_k_bins)
+
 k_bins = np.power(10.,log_k_bins)
 k_bins_cent = np.power(10.,log_k_bins+d_log_k_bins/2.)[:-1]
 PS_signal_sim = np.empty((len(files),len(k_bins_cent)))
 
 
 
-datafile = str('1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,fX_fid,xHI_fid,spec_res,1000))
+datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,fX_fid,xHI_fid,spec_res,1000))
 data = np.fromfile(str(datafile),dtype=np.float32)
 Nlos = int(data[0])
 n_kbins = int(data[1])
@@ -94,10 +107,10 @@ for i in range(n_los):
 PS_signal_fid = np.median(PS_signal_bin,axis=0)
 
 
-
+'''
 #Read data for noise
 Nlos_noise = 500
-datafile = str('1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S147,alphaR,tint))
+datafile = str('1DPS_dimensionless/1DPS_noise/power_spectrum_noise_50Mpc_z%.1f_%s_%dkHz_Smin%.1fmJy_alphaR%.2f_t%dh.dat' % (z_name,telescope,spec_res,S147,alphaR,tint))
 data = np.fromfile(str(datafile),dtype=np.float32)
 n_kbins = int(data[0])
 k = data[1:1+n_kbins]
@@ -115,7 +128,7 @@ for i in range(Nlos_noise):
 #Take median for each k bin
 #PS_noise = np.mean(PS_noise_bin,axis=0)
 sig_PS_noise = np.std(PS_noise_bin,axis=0)
-
+'''
 
 
 #Find all of the parameter values in simulated data and read the data for interpolation
@@ -127,7 +140,7 @@ for j in range(len(files)):
     #print('f_X=%.2f, <x_HI,box>=%.8f' % (logfX[j],xHI_mean[j]))
 
     #Read data for signal
-    datafile = str('1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,logfX[j],xHI_mean[j],spec_res,Nlos))
+    datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,logfX[j],xHI_mean[j],spec_res,Nlos))
     data = np.fromfile(str(datafile),dtype=np.float32)
     Nlos = int(data[0])
     n_kbins = int(data[1])
@@ -177,12 +190,12 @@ for i in range(len(xHI_interpol)):
 
 
 ax0.set_xlim(0.8,4e2)
-ax0.set_ylim(1e-13,3e-6)
+ax0.set_ylim(1e-11,3e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
 ax0.set_xlabel(r'$k \,\rm [MHz^{-1}]$', fontsize=fsize)
-ax0.set_ylabel(r'$P_{21}\,\rm [MHz]$', fontsize=fsize)
+ax0.set_ylabel(r'$kP_{21}$', fontsize=fsize)
 ax0.tick_params(axis='x',which='major',direction='in',bottom=True,top=True,left=True,right=True
 		,length=10,width=1,labelsize=fsize)
 ax0.tick_params(axis='y',which='major',direction='in',bottom=True,top=True,left=True,right=True
@@ -194,7 +207,7 @@ ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,le
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)
-plt.savefig('1DPS_plots/power_spectrum_interpol_vsxHI_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock.png' % (z_name,fX_fid,xHI_fid))
+plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsxHI_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock_morek.png' % (z_name,fX_fid,xHI_fid))
 plt.show()
 
 
@@ -223,12 +236,12 @@ ax0.text(1,1e-17,r'$\mathrm{log}_{10}(f_{\mathrm{X}})=%.1f$' % (fX_fid),fontsize
 ax0.text(1,1e-16,r'$\langle x_{\mathrm{HI}}\rangle=%.2f$' % (xHI_fid),fontsize=fsize)
 
 ax0.set_xlim(0.8,4e2)
-ax0.set_ylim(5e-19,1e-5)
+ax0.set_ylim(5e-16,3e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
 ax0.set_xlabel(r'$k \,\rm [MHz^{-1}]$', fontsize=fsize)
-ax0.set_ylabel(r'$P_{21}\,\rm [MHz]$', fontsize=fsize)
+ax0.set_ylabel(r'$kP_{21}$', fontsize=fsize)
 ax0.tick_params(axis='x',which='major',direction='in',bottom=True,top=True,left=True,right=True
 		,length=10,width=1,labelsize=fsize)
 ax0.tick_params(axis='y',which='major',direction='in',bottom=True,top=True,left=True,right=True
@@ -240,5 +253,5 @@ ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,le
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)
-plt.savefig('1DPS_plots/power_spectrum_interpol_vsfX_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock.png' % (z_name,fX_fid,xHI_fid))
+plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsfX_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock_morek.png' % (z_name,fX_fid,xHI_fid))
 plt.show()
