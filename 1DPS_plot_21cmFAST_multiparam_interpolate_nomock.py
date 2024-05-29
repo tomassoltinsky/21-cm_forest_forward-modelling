@@ -77,11 +77,9 @@ for i in range(len(files_to_remove)):
 logfX = np.empty(len(files))
 xHI_mean = np.empty(len(files))
 
-d_log_k_bins = 0.5
-log_k_bins = np.arange(0.0-d_log_k_bins/2.,3.+d_log_k_bins/2.,d_log_k_bins)
-
-d_log_k_bins = 0.2
-log_k_bins = np.arange(0.3-d_log_k_bins/2.,2.6+d_log_k_bins/2.,d_log_k_bins)
+d_log_k_bins = 0.25
+log_k_bins = np.arange(-1.0-d_log_k_bins/2.,3.+d_log_k_bins/2.,d_log_k_bins)
+log_k_bins = log_k_bins[1:]
 
 k_bins = np.power(10.,log_k_bins)
 k_bins_cent = np.power(10.,log_k_bins+d_log_k_bins/2.)[:-1]
@@ -89,7 +87,7 @@ PS_signal_sim = np.empty((len(files),len(k_bins_cent)))
 
 
 
-datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,fX_fid,xHI_fid,spec_res,1000))
+datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,fX_fid,xHI_fid,spec_res,1000))
 data = np.fromfile(str(datafile),dtype=np.float32)
 Nlos = int(data[0])
 n_kbins = int(data[1])
@@ -140,7 +138,7 @@ for j in range(len(files)):
     #print('f_X=%.2f, <x_HI,box>=%.8f' % (logfX[j],xHI_mean[j]))
 
     #Read data for signal
-    datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,logfX[j],xHI_mean[j],spec_res,Nlos))
+    datafile = str('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z_name,logfX[j],xHI_mean[j],spec_res,Nlos))
     data = np.fromfile(str(datafile),dtype=np.float32)
     Nlos = int(data[0])
     n_kbins = int(data[1])
@@ -189,8 +187,8 @@ for i in range(len(xHI_interpol)):
 
 
 
-ax0.set_xlim(0.8,4e2)
-ax0.set_ylim(1e-11,3e-5)
+#ax0.set_xlim(0.8,4e2)
+ax0.set_ylim(1e-9,3e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
 ax0.set_yscale('log')
@@ -204,10 +202,11 @@ ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,le
 		,length=5,width=1)
 
 #ax0.errorbar(k_bins_cent,PS_signal_fid,yerr=sig_PS_noise,fmt=' ',marker='o',capsize=5,color='royalblue')
+ax0.text(3.5,2e-9,r'$\mathrm{log}_{10}(f_{\mathrm{X}})=%.1f$' % (fX_fid),fontsize=fsize)
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)
-plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsxHI_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock_morek.png' % (z_name,fX_fid,xHI_fid))
+plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsxHI_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_nomock.png' % (z_name,fX_fid,xHI_fid))
 plt.show()
 
 
@@ -232,10 +231,9 @@ for i in range(len(logfX_interpol)):
    ax0.plot(k_bins_cent,PS_signal_inter,'-',color=cmap(norm(logfX_interpol[i])),label=r'Signal')
    #ax0.text(1.1*k_bins_cent[-1],PS_signal_sim[j,-1],r'$%.1f$' % (logfX[j]),fontsize=fsize-4)
 
-ax0.text(1,1e-17,r'$\mathrm{log}_{10}(f_{\mathrm{X}})=%.1f$' % (fX_fid),fontsize=fsize)
-ax0.text(1,1e-16,r'$\langle x_{\mathrm{HI}}\rangle=%.2f$' % (xHI_fid),fontsize=fsize)
+ax0.text(3.5,1e-14,r'$\langle x_{\mathrm{HI}}\rangle=%.2f$' % (xHI_fid),fontsize=fsize)
 
-ax0.set_xlim(0.8,4e2)
+#ax0.set_xlim(0.8,4e2)
 ax0.set_ylim(5e-16,3e-5)
 #ax0.set_yticks(np.arange(0.97,1.031,0.01))
 ax0.set_xscale('log')
@@ -253,5 +251,5 @@ ax0.tick_params(axis='both',which='minor',direction='in',bottom=True,top=True,le
 
 plt.tight_layout()
 plt.subplots_adjust(hspace=2.0)
-plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsfX_21cmFAST_50Mpc_z%.1f_fX%.2f_xHI%.2f_nomock_morek.png' % (z_name,fX_fid,xHI_fid))
+plt.savefig('1DPS_plots/power_spectrum_dimless_interpol_vsfX_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_nomock.png' % (z_name,fX_fid,xHI_fid))
 plt.show()

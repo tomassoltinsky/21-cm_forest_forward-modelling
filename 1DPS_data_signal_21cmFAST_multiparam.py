@@ -31,11 +31,6 @@ z_name = float(sys.argv[1])
 dvH = float(sys.argv[2])
 spec_res = float(sys.argv[3])
 n_los = int(sys.argv[4])
-telescope = str(sys.argv[5])
-S_min_QSO = float(sys.argv[6])
-alpha_R = float(sys.argv[7])
-N_d = float(sys.argv[8])
-t_int = float(sys.argv[9])
 
 #Find all of the datasets for the interpolation
 files = glob.glob(path+'los/*.dat')
@@ -73,9 +68,6 @@ for i in range(len(files_to_remove)):
 files_to_remove = glob.glob(path+'los/*xHI0.64*.dat')
 for i in range(len(files_to_remove)):
    files.remove(files_to_remove[i])
-
-files = ['../../datasets/21cmFAST_los/los/los_50Mpc_256_n1000_z6.000_fX-2.0_xHI0.25.dat']
-
 
 logfX = np.empty(len(files))
 xHI_mean = np.empty(len(files))
@@ -126,20 +118,20 @@ for l in range(len(xHI_mean)):
   for j in range(n_los):
 
     freq_smooth,signal_smooth = instrumental_features.smooth_fixedbox(freq_uni,signal_uni[j],spec_res)
+    #noise = instrumental_features.add_noise(freq_smooth,telescope,spec_res,S_min_QSO,alpha_R,t_int,N_d)
     freq_smooth = freq_smooth[:-1]
     signal_smooth = signal_smooth[:-1]
-    noise = instrumental_features.add_noise(freq_smooth,telescope,spec_res,S_min_QSO,alpha_R,t_int,N_d)
-    k,PS_signal[j,:] = PS1D.get_P(signal_smooth+noise,bandwidth)
+    k,PS_signal[j,:] = PS1D.get_P(signal_smooth,bandwidth)
 
     done_LOS = (j+1)/n_los
     if done_LOS>=done_perc:
       print('Done %.2f' % done_LOS)
       done_perc = done_perc+0.1
-
+      
   array = np.append(n_los,n_kbins)
   array = np.append(array,k)
   array = np.append(array,PS_signal)
-  array.astype('float32').tofile('1DPS_dimensionless/1DPS_signalandnoise/power_spectrum_signal_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_%s_%dkHz_t%dh_Smin%.1fmJy_alphaR%.2f_%dLOS.dat' % (z,logfX[l],xHI_mean[l],telescope,spec_res,t_int,S_min_QSO,alpha_R,n_los),sep='')
+  array.astype('float32').tofile('1DPS_dimensionless/1DPS_signal/power_spectrum_signal_21cmFAST_200Mpc_z%.1f_fX%.2f_xHI%.2f_%dkHz_%dLOS.dat' % (z,logfX[l],xHI_mean[l],spec_res,n_los),sep='')
 
   stop_clock = time.perf_counter()
   time_taken = (stop_clock-start_clock)

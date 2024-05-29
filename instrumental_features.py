@@ -16,9 +16,9 @@ from matplotlib.ticker import AutoMinorLocator
 from matplotlib import gridspec
 import matplotlib.patches as patches
 import openpyxl
+from numpy import random
 
 #constants
-
 import constants
 
 
@@ -152,3 +152,17 @@ def uni_freq(freq,signal):
       uniform_signal[i,:] = np.interp(uniform_freq, freq, signal[i])
 
   return uniform_freq,uniform_signal
+
+
+
+#Create N_samples samples of median PS signal from N_obs randomly drawn LOS
+def multi_obs(signal,N_obs,N_samples):
+   
+  N_los,N_kbins = signal.shape
+  signal_multiobs = np.empty((N_samples,N_kbins))
+
+  for i in range(N_samples):
+    LOS = random.randint(0,N_los-1,size=N_obs)
+    signal_multiobs[i][:] = np.mean(signal[LOS][:],axis=0)
+
+  return signal_multiobs
